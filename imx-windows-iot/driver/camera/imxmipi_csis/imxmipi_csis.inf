@@ -1,0 +1,90 @@
+; Copyright (c) Microsoft Corporation. All rights reserved.
+; Copyright 2022 NXP
+; Licensed under the MIT License.
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = Camera
+ClassGuid   = {ca3e7ab9-b4c3-4ae6-8251-579ef933890f}
+Provider    = %ManufacturerName%
+CatalogFile = imxmipi_csis.cat
+DriverVer   = 6/12/2022,0.7.0
+PnpLockdown = 1
+
+[DestinationDirs]
+DefaultDestDir = 12
+imxmipi_csis_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+imxmipi_csis.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%imxmipi_csis.DeviceDesc%=imxmipi_csis_Device, ACPI\NXP0C15
+
+[imxmipi_csis_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+imxmipi_csis.sys
+
+;-------------- Service installation
+[imxmipi_csis_Device.NT.Services]
+AddService = imxmipi_csis,%SPSVCINST_ASSOCSERVICE%, imxmipi_csis_Service_Inst
+
+; -------------- imxmipi_csis driver install sections
+[imxmipi_csis_Service_Inst]
+DisplayName    = %imxmipi_csis.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\imxmipi_csis.sys
+
+;
+;--- imxmipi_csis_Device Coinstaller installation ------
+;
+
+[imxmipi_csis_Device.NT.CoInstallers]
+AddReg=imxmipi_csis_Device_CoInstaller_AddReg
+CopyFiles=imxmipi_csis_Device_CoInstaller_CopyFiles
+
+[imxmipi_csis_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[imxmipi_csis_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[imxmipi_csis_Device.NT.Wdf]
+KmdfService =  imxmipi_csis, imxmipi_csis_wdfsect
+[imxmipi_csis_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+ProviderName            = "NXP"
+ManufacturerName        = "NXP Semiconductors"
+DiskName				= "i.MX MIPI CSI Csis Installation Disk"
+imxmipi_csis.DeviceDesc	= "i.MX MIPI CSI Csis Device"
+imxmipi_csis.SVCDESC	= "i.MX MIPI CSI Csis Service"
+
+SPSVCINST_ASSOCSERVICE = 0x00000002
+SERVICE_KERNEL_DRIVER  = 1
+
+SERVICE_BOOT_START     = 0
+SERVICE_SYSTEM_START   = 1
+SERVICE_DEMAND_START   = 3
+
+SERVICE_ERROR_IGNORE   = 0
+SERVICE_ERROR_NORMAL   = 1
+SERVICE_ERROR_CRITICAL = 3

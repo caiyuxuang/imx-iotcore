@@ -1,0 +1,71 @@
+;
+; imxpep.inf
+;
+
+; ================= Class section =====================
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318}
+Provider=%MSFT%
+PnpLockdown = 1
+CatalogFile=imxpep.cat ; VS requirement to have catalog file entry
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+[SourceDisksNames]
+3426=windows cd
+
+[SourceDisksFiles]
+imxpep.sys = 3426
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%MSFT%=Microsoft,NT$ARCH$
+
+[Microsoft.NT$ARCH$]
+%imxpep.DeviceDesc%=imxpep_Device, ACPI\NXP0111
+
+[imxpep_Device.NT]
+CopyFiles=imxpep_Device.CopyFiles
+
+[imxpep_Device.CopyFiles]
+imxpep.sys,,,0x100
+
+[imxpep_Device.NT.HW]
+AddReg=imxpep_Device.NT.AddReg
+
+[imxpep_Device.NT.AddReg]
+; Grant all access to system and administrators and read access to world
+HKR,,Security,,"D:P(A;;GA;;;SY)(A;;GA;;;BA)(A;;GR;;;WD)"
+
+;===================== Service installation =====================
+[imxpep_Device.NT.Services]
+AddService = imxpep,%SPSVCINST_ASSOCSERVICE%,imxpep_Service_Inst
+
+[imxpep_Service_Inst]
+DisplayName    = %imxpep.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %13%\imxpep.sys
+LoadOrderGroup = Core Platform Extensions
+
+;*****************************************
+; Strings Section
+;*****************************************
+
+[Strings]
+; localizable strings
+MSFT                   = "NXP"
+imxpep.DeviceDesc      = "i.MX Power Engine Plugin"
+imxpep.SVCDESC         = "i.MX Power Engine Plugin"
+
+; non-localizable strings
+SPSVCINST_ASSOCSERVICE= 0x00000002
+

@@ -1,0 +1,104 @@
+; Copyright (c) Microsoft Corporation. All rights reserved.
+; Licensed under the MIT License.
+
+[Version]
+Signature="$WINDOWS NT$"
+;Class=System
+;ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318}
+Class=Display
+ClassGUID={4D36E968-E325-11CE-BFC1-08002BE10318}
+Provider=%ManufacturerName%
+DriverVer=09/21/2021,12.0.10.0
+CatalogFile=imx8mdod.cat
+PnpLockDown=1
+
+; ================= Class section =====================
+
+[SourceDisksNames]
+0 = %DiskName%,,,""
+
+[SourceDisksFiles]
+imx8mdod.sys = 0
+dispctrl.dll = 0
+
+[DestinationDirs]
+Imx8mDod.Miniport = 12 ; drivers
+Imx8mDod.Display = 12 ; drivers
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NTARM64
+
+[Standard.NTARM64]
+%imx8mdod.DeviceDesc%=imx8mdod_Device, ACPI\VERI7000
+%imx8mdod.DeviceDesc%=imx8mdod_Device, ACPI\VERI7001
+%imx8mdod.DeviceDesc%=imx8mdod_Device, ACPI\VERI7003
+%imx8mdod.DeviceDesc%=imx8mdod_Device, ACPI\VERI7004
+
+[imx8mdod_Device.NT]
+CopyFiles=Imx8mDod.Miniport, Imx8mDod.Display
+AddReg=imx8mdod_AddReg
+
+[Imx8mDod.Miniport]
+imx8mdod.sys,,,0x100
+
+[Imx8mDod.Display]
+dispctrl.dll,,,0x100
+
+[imx8mdod_AddReg]
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",DisableAutoAcpiPostDeivce,%REG_DWORD%,0
+HKR,,Display0Interface,%REG_DWORD%,%DISP_INTERFACE_LVDS0%
+;Following parameters relevant to LVDS interface
+HKR,,Display0BusDataWidth,%REG_DWORD%,24
+HKR,,Display0BusMapping,%REG_DWORD%,%DISP_BUS_MAPPING_SPWG%
+;Following parameters relevant to MIPI-DSI interface
+HKR,,Display0NumLanes,%REG_DWORD%,4
+HKR,,Display0ChannelId,%REG_DWORD%,0
+;EDID - 128 bytes total length expected
+;1280x720@60
+HKR,,Display0EDID,%REG_BINARY%,\
+0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x00,0x10,0xAC,0x7A,0xA0,0x53,0x4B,0x35,0x32,\
+0x1E,0x1A,0x01,0x03,0x80,0x34,0x20,0x78,0xEA,0xEE,0x95,0xA3,0x54,0x4C,0x99,0x26,\
+0x0F,0x50,0x54,0xA1,0x08,0x00,0x81,0x40,0x81,0x80,0xA9,0x40,0xB3,0x00,0xD1,0xC0,\
+0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x1D,0x00,0x72,0x51,0xD0,0x1E,0x20,0x6E,0x28,\
+0x55,0x00,0x40,0x44,0x21,0x00,0x00,0x1A,0x00,0x00,0x00,0xFF,0x00,0x59,0x50,0x50,\
+0x59,0x30,0x36,0x37,0x56,0x32,0x35,0x4B,0x53,0x0A,0x00,0x00,0x00,0xFC,0x00,0x44,\
+0x45,0x4C,0x4C,0x20,0x55,0x32,0x34,0x31,0x32,0x4D,0x0A,0x20,0x00,0x00,0x00,0xFD,\
+0x00,0x32,0x3D,0x1E,0x53,0x11,0x00,0x0A,0x20,0x20,0x20,0x20,0x20,0x20,0x00,0x6D
+
+;-------------- Service installation
+[imx8mdod_Device.NT.Services]
+AddService = imx8mdod,%SPSVCINST_ASSOCSERVICE%, imx8mdod_Service_Inst
+
+; -------------- imx8mdod driver install sections
+[imx8mdod_Service_Inst]
+DisplayName    = %imx8mdod.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\imx8mdod.sys
+
+[Strings]
+REG_MULTI_SZ  = 0x00010000
+REG_DWORD     = 0x00010001
+REG_BINARY    = 0x00000001
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="IoT"
+DiskName = "i.MX8 Display Device Installation Disk"
+imx8mdod.DeviceDesc = "i.MX8 Display Device "
+imx8mdod.SVCDESC = "i.MX8 Display Device Service"
+;Possible values for DisplayInterfaces, only a subset may be available on specific platform
+DISP_INTERFACE_DISABLED = 0x0
+DISP_INTERFACE_HDMI = 0x1
+DISP_INTERFACE_MIPI_DSI0 = 0x2
+DISP_INTERFACE_MIPI_DSI1 = 0x3
+DISP_INTERFACE_LVDS0 = 0x4
+DISP_INTERFACE_LVDS1 = 0x5
+DISP_INTERFACE_LVDS_DUAL0 = 0x6
+DISP_INTERFACE_PARALLEL_LCD = 0x7
+;Possible values for DisplayBusMapping
+DISP_BUS_MAPPING_SPWG = 0x1
+DISP_BUS_MAPPING_JEIDA = 0x2

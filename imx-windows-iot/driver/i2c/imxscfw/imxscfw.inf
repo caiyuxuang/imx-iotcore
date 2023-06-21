@@ -1,0 +1,91 @@
+﻿; Copyright (c) Microsoft Corporation. All rights reserved.
+; Copyright 2022 NXP
+; Licensed under the MIT License.
+;
+;Module Name:
+;    imxscfw.inf
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318}
+Provider=%ManufacturerName%
+PnpLockdown = 1
+DriverVer= ; stampinf will fill in driver version
+CatalogFile=imxscfw.cat ; VS requirement to have catalog file entry
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+; ================= Class section =====================
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+imxscfw.sys  = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%imxscfw.0001.DeviceDesc%=imx8m_scfw_Device, ACPI\VEN_NXP&DEV_0118&REV_0001
+%imxscfw.DeviceDesc%=imx_scfw_Device, ACPI\NXP0118
+
+[imx_scfw_Device.NT]
+CopyFiles=Drivers_Dir
+
+[imx8m_scfw_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+imxscfw.sys
+
+;-------------- Service installation
+[imx_scfw_Device.NT.Services]
+AddService = imxscfw,%SPSVCINST_ASSOCSERVICE%, imxscfw_Service_Inst
+
+[imx8m_scfw_Device.NT.Services]
+AddService = imxscfw,%SPSVCINST_ASSOCSERVICE%, imxscfw_Service_Inst
+
+; -------------- imxscfw driver install sections
+[imxscfw_Service_Inst]
+DisplayName    = %imxscfw.SVCDESC%
+ServiceType    = 1 ; SERVICE_KERNEL_DRIVER
+StartType      = 3 ; SERVICE_DEMAND_START
+ErrorControl   = 1 ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %13%\imxscfw.sys
+Dependencies   = SpbCx
+
+[imx_scfw_Device.NT.HW]
+Addreg=imx_scfw_Device.NT.HW.AddReg
+
+[imx8m_scfw_Device.NT.HW]
+Addreg=imx8m_scfw_Device.NT.HW.AddReg
+
+[imx_scfw_Device.NT.HW.AddReg]
+HKR,,Peripheral Clock kHz,0x10001,66000
+
+[imx8m_scfw_Device.NT.HW.AddReg]
+HKR,,Peripheral Clock kHz,0x10001,25000
+
+[imx_scfw_Device.NT.Wdf]
+KmdfService =  imxscfw, imxscfw_wdfsect
+
+[imx8m_scfw_Device.NT.Wdf]
+KmdfService =  imxscfw, imxscfw_wdfsect
+
+[imxscfw_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="IoT"
+DiskName = "i.MX SCFW Communication Device Installation Disk"
+imxscfw.DeviceDesc = "i.MX SCFW Communication Device"
+imxscfw.0001.DeviceDesc = "i.MX SCFW Communication Device"
+imxscfw.SVCDESC = "i.MX SCFW Communication Service"

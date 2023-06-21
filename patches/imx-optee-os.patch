@@ -1,0 +1,158 @@
+diff --git a/core/arch/arm/plat-imx/conf.mk b/core/arch/arm/plat-imx/conf.mk
+index 7ae0d64c6..8938061f7 100644
+--- a/core/arch/arm/plat-imx/conf.mk
++++ b/core/arch/arm/plat-imx/conf.mk
+@@ -472,7 +472,7 @@ CFG_SECURE_TIME_SOURCE_REE ?= y
+ CFG_UART_BASE ?= UART1_BASE
+ endif
+ 
+-ifneq (,$(filter y, $(CFG_MX6) $(CFG_MX7) $(CFG_MX8MM)))
++ifneq (,$(filter y, $(CFG_MX6) $(CFG_MX7) $(CFG_MX8MM) $(CFG_MX8MN)))
+ $(call force,CFG_IMX_UART,y)
+ ifeq ($(CFG_RPMB_FS),y)
+ CFG_NXP_SNVS ?= y
+@@ -520,9 +520,9 @@ ifeq ($(CFG_ARM64_core),y)
+ CFG_DT ?= y
+ CFG_EXTERNAL_DTB_OVERLAY = y
+ #few special case to handle
+-ifneq (,$(filter y, $(CFG_MX8MN) $(CFG_MX8MP) $(CFG_MX8DX) $(CFG_MX8DXL)))
++ifneq (,$(filter y, $(CFG_MX8MP)))
+ # New device will have base addresses within the first 1GB of DDR
+-CFG_TZDRAM_START ?= ($(CFG_DRAM_BASE) + 0x16000000)
++CFG_TZDRAM_START ?= ($(CFG_DRAM_BASE) + 0x00000000BE000000)
+ else ifneq (,$(filter y, $(CFG_MX8ULP)))
+ CFG_TZDRAM_START ?= ($(CFG_DRAM_BASE) + 0x26000000)
+ else
+@@ -608,3 +608,9 @@ endif
+ 
+ # Cryptographic configuration
+ include core/arch/arm/plat-imx/crypto_conf.mk
++
++# Read 30 FAT FS entries at once from RPMB storage
++CFG_RPMB_FS_RD_ENTRIES ?= 30
++
++# Enable caching. Size of 60 should be enough to cache all entries
++CFG_RPMB_FS_CACHE_ENTRIES ?= 60
+diff --git a/core/arch/arm/plat-imx/imx_rpmb.c b/core/arch/arm/plat-imx/imx_rpmb.c
+index 9f0eb384d..c32a008a7 100644
+--- a/core/arch/arm/plat-imx/imx_rpmb.c
++++ b/core/arch/arm/plat-imx/imx_rpmb.c
+@@ -2,7 +2,7 @@
+ /*
+  * Copyright 2020 Pengutronix, Rouven Czerwinski <entwicklung@pengutronix.de>
+  */
+-#include <drivers/imx_snvs.h>
++#include <drivers/nxp_snvs.h>
+ #include <imx.h>
+ #include <tee/tee_fs.h>
+ 
+@@ -25,5 +25,14 @@ bool plat_rpmb_key_is_ready(void)
+ 	if (soc_is_imx6sdl() || soc_is_imx6dq())
+ 		return ssm_secure;
+ 
++#ifdef CFG_RPMB_TESTKEY
++	return ((security == SNVS_SECURITY_CFG_CLOSED) && ssm_secure) ||
++	       ((security == SNVS_SECURITY_CFG_OPEN) &&
++		        (mode == SNVS_SSM_MODE_TRUSTED ||
++		         mode == SNVS_SSM_MODE_SECURE ||
++				 mode == SNVS_SSM_MODE_NON_SECURE ||
++				 mode == SNVS_SSM_MODE_CHECK));
++#else
+ 	return ssm_secure && (security == SNVS_SECURITY_CFG_CLOSED);
++#endif
+ }
+diff --git a/core/arch/arm/plat-imx/platform_config.h b/core/arch/arm/plat-imx/platform_config.h
+index 1b529da4f..a5fedb911 100644
+--- a/core/arch/arm/plat-imx/platform_config.h
++++ b/core/arch/arm/plat-imx/platform_config.h
+@@ -78,7 +78,7 @@
+ 	defined(CFG_MX8MP)
+ #define DRAM0_NSEC_BASE CFG_DRAM_BASE
+ #define DRAM0_NSEC_SIZE (CFG_TZDRAM_START - CFG_DRAM_BASE)
+-#define DRAM1_NSEC_BASE (CFG_TZDRAM_START + 0x2000000)
++#define DRAM1_NSEC_BASE (CFG_TZDRAM_START + 0x2000000UL)
+ #define DRAM1_NSEC_SIZE (CFG_DDR_SIZE - DRAM1_NSEC_BASE + CFG_DRAM_BASE)
+ #endif
+ 
+diff --git a/core/arch/arm/plat-imx/sub.mk b/core/arch/arm/plat-imx/sub.mk
+index 8844d1c03..48faf6543 100644
+--- a/core/arch/arm/plat-imx/sub.mk
++++ b/core/arch/arm/plat-imx/sub.mk
+@@ -23,7 +23,9 @@ subdirs-y += pm
+ subdirs-y += drivers
+ srcs-$(CFG_IMX_OCRAM) += imx_ocram.c
+ srcs-$(CFG_DT) += imx_dt.c
++ifeq (,$(filter $(PLATFORM_FLAVOR),$(mx8qx-flavorlist)))
+ srcs-$(CFG_RPMB_FS) += imx_rpmb.c
++endif
+ 
+ # Build the busfreq module
+ subdirs-$(CFG_BUSFREQ) += busfreq
+diff --git a/core/drivers/imx_uart.c b/core/drivers/imx_uart.c
+index d79046ce9..664217725 100644
+--- a/core/drivers/imx_uart.c
++++ b/core/drivers/imx_uart.c
+@@ -121,6 +121,10 @@ static void imx_uart_putc(struct serial_chip *chip, int ch)
+ 			return;
+ 
+ 	io_write32(base + UTXD, ch);
++
++	/* Wait until sent */
++	while (!(io_read32(base + UTS) & UTS_TXEMPTY))
++		;
+ }
+ 
+ static const struct serial_ops imx_uart_ops = {
+diff --git a/core/tee/tee_rpmb_fs.c b/core/tee/tee_rpmb_fs.c
+index feab2f42d..f090b1bfc 100644
+--- a/core/tee/tee_rpmb_fs.c
++++ b/core/tee/tee_rpmb_fs.c
+@@ -49,6 +49,14 @@
+ 
+ #define RPMB_MAX_RETRIES		10
+ 
++/**
++ * Utilized when caching is enabled, i.e., when CFG_RPMB_FS_CACHE_ENTRIES > 0.
++ * Cache size + the number of entries that are repeatedly read in and buffered
++ * once the cache is full.
++ */
++#define RPMB_BUF_MAX_ENTRIES (CFG_RPMB_FS_CACHE_ENTRIES + \
++			      CFG_RPMB_FS_RD_ENTRIES)
++
+ /**
+  * Utilized when caching is enabled, i.e., when CFG_RPMB_FS_CACHE_ENTRIES > 0.
+  * Cache size + the number of entries that are repeatedly read in and buffered
+@@ -2155,7 +2163,7 @@ static TEE_Result read_fat(struct rpmb_file_handle *fh, tee_mm_pool_t *p)
+ 		 * Look for an entry, matching filenames. (read, rm,
+ 		 * rename and stat.). Only store first filename match.
+ 		 */
+-		if ((!strcmp(fh->filename, fe->filename)) &&
++		if (fh->filename && (!strcmp(fh->filename, fe->filename)) &&
+ 		    (fe->flags & FILE_IS_ACTIVE) && !entry_found) {
+ 			entry_found = true;
+ 			fh->rpmb_fat_address = fat_address;
+diff --git a/scripts/gen_ld_sects.py b/scripts/gen_ld_sects.py
+index bc82dd8b6..329aa8deb 100755
+--- a/scripts/gen_ld_sects.py
++++ b/scripts/gen_ld_sects.py
+@@ -9,7 +9,7 @@ import re
+ 
+ 
+ def usage():
+-    print("Usage: {0} <section reg exp match> [<skip section>...]".format(
++    print("Usage: {0} <section reg exp match> [<skip section>...]".format( \
+         sys.argv[0]))
+     sys.exit(1)
+ 
+diff --git a/ta/ta.mk b/ta/ta.mk
+index 2b94c0890..b0749852a 100644
+--- a/ta/ta.mk
++++ b/ta/ta.mk
+@@ -199,5 +199,7 @@ $(eval $(mk-file-export))
+ 
+ cleanfiles := $(cleanfiles) $(conf-mk-file-export)
+ ta_dev_kit: $(conf-mk-file-export)
++	sed -i '/#define fallthrough __attribute__((__fallthrough__))/c\#define fallthrough __fallthrough__' $(out-dir)/export-ta_arm64/include/compiler.h
+ 
+ all: ta_dev_kit
++

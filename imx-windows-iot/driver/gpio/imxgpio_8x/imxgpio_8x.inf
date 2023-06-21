@@ -1,0 +1,81 @@
+; 
+;  Copyright 2022 NXP
+; 
+;  Redistribution and use in source and binary forms, with or without
+;  modification, are permitted provided that the following conditions are met:
+; 
+;  * Redistributions of source code must retain the above copyright
+;    notice, this list of conditions and the following disclaimer.
+; 
+;  * Redistributions in binary form must reproduce the above copyright
+;    notice, this list of conditions and the following disclaimer in the
+;    documentation and/or other materials provided with the distribution.
+;  * Neither the name of the copyright holder nor the
+;    names of its contributors may be used to endorse or promote products
+;    derived from this software without specific prior written permission.
+; 
+;  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+;  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+;  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+;  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+;  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+;  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+;  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+;  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+;  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+;  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+; 
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider=%ProviderName%
+PnpLockdown = 1
+CatalogFile=imxgpio_8x.cat
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+[SourceDisksNames]
+1 = %DiskName%
+
+[SourceDisksFiles]
+imxgpio_8x.sys  = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%imxgpio_8x.DeviceDesc%=imxgpio_8x_Device, ACPI\NXP0102
+
+[imxgpio_8x_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+imxgpio_8x.sys
+
+;-------------- Service installation
+[imxgpio_8x_Device.NT.Services]
+AddService = imxgpio_8x, 0x00000002, imxgpio_8x_Service_Inst
+
+; -------------- imxgpio_8x driver install sections
+[imxgpio_8x_Service_Inst]
+DisplayName    = %imxgpio_8x.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_BOOT_START(0), SERVICE_SYSTEM_START(1), SERVICE_DEMAND_START(3)
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL(1), SERVICE_ERROR_IGNORE(0), SERVICE_ERROR_CRITICAL(3)
+ServiceBinary  = %13%\imxgpio_8x.sys
+LoadOrderGroup = Base
+Dependencies   = GPIOClx0101
+
+[strings]
+ProviderName                 = "NXP"
+ManufacturerName             = "NXP Semiconductors"
+imxgpio_8x.DeviceDesc        = "i.MX GPIO Controller"
+imxgpio_8x.SVCDESC           = "i.MX GPIO Controller Service"
+DiskName                     = "i.MX NXP BSP Installation Disk"

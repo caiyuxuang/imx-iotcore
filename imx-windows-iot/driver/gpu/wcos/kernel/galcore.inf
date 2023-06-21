@@ -1,0 +1,254 @@
+﻿; Copyright (c) Microsoft Corporation. All rights reserved.
+; Licensed under the MIT License.
+
+[Version]
+Signature="$WINDOWS NT$"
+;Class=System
+;ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318}
+Class=Display
+ClassGUID={4D36E968-E325-11CE-BFC1-08002BE10318}
+Provider=%ManufacturerName%
+DriverVer=11/01/2022,26.18.10.4
+CatalogFile=galcore.cat
+
+; ================= Class section =====================
+
+[SourceDisksNames]
+0 = %DiskName%,,,""
+
+[SourceDisksFiles]
+galcore.sys = 0
+dispctrl.dll = 0
+umd11.dll = 0
+vulkan.dll = 0
+libGLSLC.dll = 0
+libVSC.dll = 0
+spvconverter.dll = 0
+libGAL.dll = 0
+
+[SourceDisksFiles.arm64]
+umd11_32.dll = 0
+vulkan_32.dll = 0
+libGLSLC_32.dll = 0
+libVSC_32.dll = 0
+spvconverter_32.dll = 0
+libGAL_32.dll = 0
+
+[SourceDisksFiles.amd64]
+libEmulator.dll = 0
+
+[DestinationDirs]
+GalCore.Miniport = 12 ; drivers
+GalCore.UserMode = 11 ; system32
+GalCore.WoW = 10, SysArm32
+Emulator.UserMode = 11 ; system32
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NTARM64,NTAMD64
+
+[Standard.NTARM64]
+%galcore.DeviceDesc%=galcore_Device, ACPI\VERI7000
+%galcore.DeviceDesc%=galcoreMP_Device, ACPI\VERI7001
+%galcore.DeviceDesc%=galcoreMN_Device, ACPI\VERI7003
+%galcore.DeviceDesc%=galcore8X_Device, ACPI\VERI7004
+
+[Standard.NTAMD64]
+%galcore.DeviceDesc%=EmuGC7L_Device, EmuGC7LDevice
+
+[galcore_Device.NT]
+CopyFiles=GalCore.Miniport, GalCore.UserMode, GalCore.WoW
+AddReg=GcWddm_AddReg
+
+[galcoreMP_Device.NT]
+CopyFiles=GalCore.Miniport, GalCore.UserMode, GalCore.WoW
+AddReg=GcWddmMP_AddReg
+
+[galcoreMN_Device.NT]
+CopyFiles=GalCore.Miniport, GalCore.UserMode, GalCore.WoW
+AddReg=GcWddmMN_AddReg
+
+[galcore8X_Device.NT]
+CopyFiles=GalCore.Miniport, GalCore.UserMode, GalCore.WoW
+AddReg=GcWddm8X_AddReg
+
+[EmuGC7L_Device.NT]
+CopyFiles=GalCore.Miniport, GalCore.UserMode, Emulator.UserMode
+AddReg=EmuGC7L_AddReg
+
+[GalCore.Miniport]
+galcore.sys,,,0x100
+dispctrl.dll,,,0x100
+
+[GalCore.UserMode]
+umd11.dll,,,0x4000
+vulkan.dll,,,0x4000
+libGLSLC.dll,,,0x4000
+libVSC.dll,,,0x4000
+spvconverter.dll,,,0x4000
+libGAL.dll,,,0x4000
+
+[GalCore.WoW]
+umd11.dll,umd11_32.dll,,0x4000
+vulkan.dll,vulkan_32.dll,,0x4000
+libGLSLC.dll,libGLSLC_32.dll,,0x4000
+libVSC.dll,libVSC_32.dll,,0x4000
+spvconverter.dll,spvconverter_32.dll,,0x4000
+libGAL.dll,libGAL_32.dll,,0x4000
+
+[Emulator.UserMode]
+libEmulator.dll,,,0x4000
+
+[GcWddm_AddReg]
+HKR,,UserModeDriverName,%REG_MULTI_SZ%,"<>",umd11.dll,umd11.dll,umd12.dll
+HKR,,UserModeDriverNameWow2,%REG_MULTI_SZ%,"<>",umd11.dll,umd11.dll,umd12.dll
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",DisableAutoAcpiPostDeivce,%REG_DWORD%,0
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\MemoryManager",GpuVaFirstValidAddress,%REG_DWORD%,0x1000000
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\MemoryManager",DisableUncommitGpuVaInPagingProcess,%REG_DWORD%,1
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\MemoryManager",DirectFlipMemoryRequirement,%REG_DWORD%,32
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Scheduler",EnablePreemption,%REG_DWORD%,0
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",TdrDebugMode,%REG_DWORD%,2
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",TdrLimitCount,%REG_DWORD%,100
+HKLM,"SOFTWARE\Microsoft\XAML",ForceWARP,%REG_DWORD%,0
+
+[GcWddmMP_AddReg]
+HKR,,UserModeDriverName,%REG_MULTI_SZ%,"<>",umd11.dll,umd11.dll,umd12.dll
+HKR,,UserModeDriverNameWow2,%REG_MULTI_SZ%,"<>",umd11.dll,umd11.dll,umd12.dll
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",DisableAutoAcpiPostDeivce,%REG_DWORD%,0
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\MemoryManager",GpuVaFirstValidAddress,%REG_DWORD%,0x1000000
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\MemoryManager",DisableUncommitGpuVaInPagingProcess,%REG_DWORD%,1
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\MemoryManager",DirectFlipMemoryRequirement,%REG_DWORD%,32
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Scheduler",EnablePreemption,%REG_DWORD%,0
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",TdrDebugMode,%REG_DWORD%,2
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",TdrLimitCount,%REG_DWORD%,100
+HKLM,"SOFTWARE\Microsoft\XAML",ForceWARP,%REG_DWORD%,0
+; Display parameters for LVDS interface
+HKR,,Display0Interface,%REG_DWORD%,%DISP_INTERFACE_HDMI%
+; HKR,,Display0Interface,%REG_DWORD%,%DISP_INTERFACE_LVDS0%
+;Following parameters relevant to LVDS interface
+HKR,,Display0BusDataWidth,%REG_DWORD%,24
+HKR,,Display0BusMapping,%REG_DWORD%,%DISP_BUS_MAPPING_SPWG%
+;Following parameters relevant to MIPI-DSI interface
+HKR,,Display0NumLanes,%REG_DWORD%,4
+HKR,,Display0ChannelId,%REG_DWORD%,0
+;EDID - 128 bytes total length expected
+;1280x720@60
+HKR,,Display0EDID,%REG_BINARY%,\
+0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x00,0x10,0xAC,0x7A,0xA0,0x53,0x4B,0x35,0x32,\
+0x1E,0x1A,0x01,0x03,0x80,0x34,0x20,0x78,0xEA,0xEE,0x95,0xA3,0x54,0x4C,0x99,0x26,\
+0x0F,0x50,0x54,0xA1,0x08,0x00,0x81,0x40,0x81,0x80,0xA9,0x40,0xB3,0x00,0xD1,0xC0,\
+0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x1D,0x00,0x72,0x51,0xD0,0x1E,0x20,0x6E,0x28,\
+0x55,0x00,0x40,0x44,0x21,0x00,0x00,0x1A,0x00,0x00,0x00,0xFF,0x00,0x59,0x50,0x50,\
+0x59,0x30,0x36,0x37,0x56,0x32,0x35,0x4B,0x53,0x0A,0x00,0x00,0x00,0xFC,0x00,0x44,\
+0x45,0x4C,0x4C,0x20,0x55,0x32,0x34,0x31,0x32,0x4D,0x0A,0x20,0x00,0x00,0x00,0xFD,\
+0x00,0x32,0x3D,0x1E,0x53,0x11,0x00,0x0A,0x20,0x20,0x20,0x20,0x20,0x20,0x00,0x6D
+
+[GcWddmMN_AddReg]
+HKR,,UserModeDriverName,%REG_MULTI_SZ%,"<>",umd11.dll,umd11.dll,umd12.dll
+HKR,,UserModeDriverNameWow2,%REG_MULTI_SZ%,"<>",umd11.dll,umd11.dll,umd12.dll
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",DisableAutoAcpiPostDeivce,%REG_DWORD%,0
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\MemoryManager",GpuVaFirstValidAddress,%REG_DWORD%,0x1000000
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\MemoryManager",DisableUncommitGpuVaInPagingProcess,%REG_DWORD%,1
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\MemoryManager",DirectFlipMemoryRequirement,%REG_DWORD%,32
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Scheduler",EnablePreemption,%REG_DWORD%,0
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",TdrDebugMode,%REG_DWORD%,2
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",TdrLimitCount,%REG_DWORD%,100
+HKLM,"SOFTWARE\Microsoft\XAML",ForceWARP,%REG_DWORD%,0
+;Following parameters relevant to MIPI-DSI interface
+HKR,,Display0NumLanes,%REG_DWORD%,4
+HKR,,Display0ChannelId,%REG_DWORD%,0
+;EDID - 128 bytes total length expected
+;1280x720@60
+HKR,,Display0EDID,%REG_BINARY%,\
+0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x00,0x10,0xAC,0x7A,0xA0,0x53,0x4B,0x35,0x32,\
+0x1E,0x1A,0x01,0x03,0x80,0x34,0x20,0x78,0xEA,0xEE,0x95,0xA3,0x54,0x4C,0x99,0x26,\
+0x0F,0x50,0x54,0xA1,0x08,0x00,0x81,0x40,0x81,0x80,0xA9,0x40,0xB3,0x00,0xD1,0xC0,\
+0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x1D,0x00,0x72,0x51,0xD0,0x1E,0x20,0x6E,0x28,\
+0x55,0x00,0x40,0x44,0x21,0x00,0x00,0x1A,0x00,0x00,0x00,0xFF,0x00,0x59,0x50,0x50,\
+0x59,0x30,0x36,0x37,0x56,0x32,0x35,0x4B,0x53,0x0A,0x00,0x00,0x00,0xFC,0x00,0x44,\
+0x45,0x4C,0x4C,0x20,0x55,0x32,0x34,0x31,0x32,0x4D,0x0A,0x20,0x00,0x00,0x00,0xFD,\
+0x00,0x32,0x3D,0x1E,0x53,0x11,0x00,0x0A,0x20,0x20,0x20,0x20,0x20,0x20,0x00,0x6D
+
+[GcWddm8X_AddReg]
+HKR,,UserModeDriverName,%REG_MULTI_SZ%,"<>",umd11.dll,umd11.dll,umd12.dll
+HKR,,UserModeDriverNameWow2,%REG_MULTI_SZ%,"<>",umd11.dll,umd11.dll,umd12.dll
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",DisableAutoAcpiPostDeivce,%REG_DWORD%,0
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\MemoryManager",GpuVaFirstValidAddress,%REG_DWORD%,0x1000000
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\MemoryManager",DisableUncommitGpuVaInPagingProcess,%REG_DWORD%,1
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\MemoryManager",DirectFlipMemoryRequirement,%REG_DWORD%,32
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers\Scheduler",EnablePreemption,%REG_DWORD%,0
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",TdrDebugMode,%REG_DWORD%,2
+;HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",TdrLimitCount,%REG_DWORD%,100
+HKLM,"SOFTWARE\Microsoft\XAML",ForceWARP,%REG_DWORD%,0
+;Following parameters relevant to MIPI-DSI interface
+HKR,,Display0NumLanes,%REG_DWORD%,4
+HKR,,Display0ChannelId,%REG_DWORD%,0
+;EDID - 128 bytes total length expected
+;1920x1080@60
+HKR,,Display0EDID,%REG_BINARY%,\
+0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x00,0x10,0xAC,0xD2,0xD0,0x4C,0x58,0x37,0x30,\
+0x0B,0x1C,0x01,0x03,0x80,0x35,0x1E,0x78,0xEE,0x21,0x95,0xA9,0x54,0x4E,0x9C,0x26,\
+0x0F,0x50,0x54,0xA5,0x4B,0x00,0x71,0x4F,0x81,0x80,0xA9,0xC0,0xD1,0xC0,0x01,0x01,\
+0x01,0x01,0x01,0x01,0x01,0x01,0x02,0x3A,0x80,0x18,0x71,0x38,0x2D,0x40,0x58,0x2C,\
+0x45,0x00,0x0F,0x28,0x21,0x00,0x00,0x1E,0x00,0x00,0x00,0xFF,0x00,0x42,0x47,0x4D,\
+0x50,0x44,0x4D,0x32,0x0A,0x20,0x20,0x20,0x20,0x20,0x00,0x00,0x00,0xFC,0x00,0x44,\
+0x45,0x4C,0x4C,0x20,0x53,0x32,0x34,0x31,0x39,0x48,0x0A,0x20,0x00,0x00,0x00,0xFD,\
+0x00,0x38,0x4C,0x1E,0x53,0x11,0x00,0x0A,0x20,0x20,0x20,0x20,0x20,0x20,0x00,0xB6
+
+[EmuGC7L_AddReg]
+HKR,,SoftGPUAdapter,%REG_DWORD%,1
+HKR,,UserModeDriverName,%REG_MULTI_SZ%,"<>",umd11.dll,umd11.dll,umd12.dll
+HKR,,UserModeDriverNameWow,%REG_MULTI_SZ%,"<>",umd11.dll,umd11.dll,umd12.dll
+HKLM,"SYSTEM\CurrentControlSet\Control\GraphicsDrivers",TdrDebugMode,%REG_DWORD%,1
+HKLM,"SOFTWARE\Microsoft\XAML",ForceWARP,%REG_DWORD%,1
+
+;-------------- Service installation
+[galcore_Device.NT.Services]
+AddService = galcore,%SPSVCINST_ASSOCSERVICE%, galcore_Service_Inst
+
+[galcoreMP_Device.NT.Services]
+AddService = galcore,%SPSVCINST_ASSOCSERVICE%, galcore_Service_Inst
+
+[galcoreMN_Device.NT.Services]
+AddService = galcore,%SPSVCINST_ASSOCSERVICE%, galcore_Service_Inst
+
+[galcore8X_Device.NT.Services]
+AddService = galcore,%SPSVCINST_ASSOCSERVICE%, galcore_Service_Inst
+
+[EmuGC7L_Device.NT.Services]
+AddService = galcore,%SPSVCINST_ASSOCSERVICE%, galcore_Service_Inst
+
+; -------------- galcore driver install sections
+[galcore_Service_Inst]
+DisplayName    = %galcore.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\galcore.sys
+
+[Strings]
+REG_MULTI_SZ  = 0x00010000
+REG_DWORD     = 0x00010001
+REG_BINARY    = 0x00000001
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="IoT"
+DiskName = "i.MX GPU Device Installation Disk"
+galcore.DeviceDesc = "i.MX GPU Device"
+galcore.SVCDESC = "i.MX GPU Device Service"
+;Possible values for DisplayInterfaces, only a subset may be available on specific platform
+DISP_INTERFACE_DISABLED = 0x0
+DISP_INTERFACE_HDMI = 0x1
+DISP_INTERFACE_MIPI_DSI0 = 0x2
+DISP_INTERFACE_MIPI_DSI1 = 0x3
+DISP_INTERFACE_LVDS0 = 0x4
+DISP_INTERFACE_LVDS1 = 0x5
+DISP_INTERFACE_LVDS_DUAL0 = 0x6
+DISP_INTERFACE_PARALLEL_LCD = 0x7
+;Possible values for DisplayBusMapping
+DISP_BUS_MAPPING_SPWG = 0x1
+DISP_BUS_MAPPING_JEIDA = 0x2
+
+

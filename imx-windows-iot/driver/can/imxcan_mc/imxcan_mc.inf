@@ -1,0 +1,99 @@
+; Copyright (c) Microsoft Corporation. All rights reserved.
+; Copyright 2022 NXP
+; Licensed under the MIT License.
+
+[Version]
+Signature="$WINDOWS NT$"
+Class       = System
+ClassGUID   = {4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider    = %ProviderString%
+PnpLockdown = 1
+CatalogFile = imxcan.cat
+DriverVer   = 12/31/2021,0.0.1
+
+[DestinationDirs]
+DefaultDestDir = 12
+imxcan_Device_CoInstaller_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+imxcan_mc.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+; DisplayName                  Section        DeviceID
+%imxcan.DeviceDesc%          = imxcan_Device, ACPI\NXP0222
+
+[imxcan_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+imxcan_mc.sys
+
+;-------------- Service installation
+[imxcan_Device.NT.Services]
+AddService = imxcan,%SPSVCINST_ASSOCSERVICE%, imxcan_Service_Inst
+
+; -------------- imxcan driver install sections
+[imxcan_Service_Inst]
+DisplayName    = %imxcan.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\imxcan_mc.sys
+
+;
+;--- imxcan_Device Coinstaller installation ------
+;
+
+[imxcan_Device.NT.CoInstallers]
+AddReg=imxcan_Device_CoInstaller_AddReg
+CopyFiles=imxcan_Device_CoInstaller_CopyFiles
+
+[imxcan_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[imxcan_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[imxcan_Device.NT.Wdf]
+KmdfService =  imxcan, imxcan_wdfsect
+[imxcan_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+;*****************************************
+; Device interface installation
+;*****************************************
+[IMXCAN_Device.NT.Interfaces]
+AddInterface={9d3484af-d47f-4e60-8dce-3a4ebfb8f670},,CAN_Interface
+
+[CAN_Interface]
+AddProperty=CAN_Interface_AddProperty
+
+; Set DEVPKEY_DeviceInterface_Restricted property to false to allow UWP access
+; to the device interface without the need to be bound with device metadata.
+; If Restricted property is set to true, then only applications which are bound
+; with device metadata would be allowed access to the device interface.
+[CAN_Interface_AddProperty]
+{026e516e-b814-414b-83cd-856d6fef4822},6,0x11,,0
+
+;*****************************************
+; Strings section
+;*****************************************
+[Strings]
+ProviderString               = "NXP"
+ManufacturerName             = "NXP Semiconductors"
+DiskName                     = "imxcan Installation Disk"
+imxcan.DeviceDesc            = "i.MX FlexCAN Device"
+imxcan.SVCDESC               = "imxcan Service"
+
+SPSVCINST_ASSOCSERVICE       = 0x00000002

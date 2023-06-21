@@ -1,0 +1,90 @@
+; Copyright (c) Microsoft Corporation. All rights reserved.
+; Copyright 2022 NXP
+; Licensed under the MIT License.
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = Camera
+ClassGuid   = {ca3e7ab9-b4c3-4ae6-8251-579ef933890f}
+Provider    = %ManufacturerName%
+CatalogFile =imxisi.cat
+DriverVer   = 6/12/2022,0.7.0
+PnpLockdown = 1
+
+[DestinationDirs]
+DefaultDestDir = 12
+imxisi_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+imxisi.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%imxisi.DeviceDesc%=imxisi_Device, ACPI\NXP0C12
+
+[imxisi_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+imxisi.sys
+
+;-------------- Service installation
+[imxisi_Device.NT.Services]
+AddService = imxisi,%SPSVCINST_ASSOCSERVICE%, imxisi_Service_Inst
+
+; -------------- imxisi driver install sections
+[imxisi_Service_Inst]
+DisplayName    = %imxisi.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\imxisi.sys
+
+;
+;--- imxisi_Device Coinstaller installation ------
+;
+
+[imxisi_Device.NT.CoInstallers]
+AddReg=imxisi_Device_CoInstaller_AddReg
+CopyFiles=imxisi_Device_CoInstaller_CopyFiles
+
+[imxisi_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[imxisi_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[imxisi_Device.NT.Wdf]
+KmdfService =  imxisi, imxisi_wdfsect
+[imxisi_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+ProviderName            = "NXP"
+ManufacturerName        = "NXP Semiconductors"
+DiskName				= "i.MX Image Sensing Interface Installation Disk"
+imxisi.DeviceDesc	    = "i.MX Image Sensing Interface Device"
+imxisi.SVCDESC		    = "i.MX Image Sensing Interface Service"
+
+SPSVCINST_ASSOCSERVICE = 0x00000002
+SERVICE_KERNEL_DRIVER  = 1
+
+SERVICE_BOOT_START     = 0
+SERVICE_SYSTEM_START   = 1
+SERVICE_DEMAND_START   = 3
+
+SERVICE_ERROR_IGNORE   = 0
+SERVICE_ERROR_NORMAL   = 1
+SERVICE_ERROR_CRITICAL = 3

@@ -1,0 +1,361 @@
+; Copyright (c) Microsoft Corporation. All rights reserved.
+; Copyright 2022 NXP
+; Licensed under the MIT License.
+
+[Version]
+signature   = "$WINDOWS NT$"
+Class       = Camera
+ClassGuid   = {ca3e7ab9-b4c3-4ae6-8251-579ef933890f}
+Provider    = %ProviderName%
+PnpLockdown = 1
+Catalogfile = imxcamera.cat
+
+[SourceDisksNames]
+1000 = %DiskName%,,,""
+
+[SourceDisksFiles]
+imxcamera.sys      = 1000
+imxcsi.sys         = 1000
+imxisi.sys         = 1000
+imxmipi.sys        = 1000
+imxmipi_csis.sys   = 1000
+imxsns_ov5640.sys  = 1000
+imxsns_ov10635.sys = 1000
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll = 1000 ; make sure the number matches with SourceDisksNames
+
+
+[DestinationDirs]
+DefaultDestDir                  = 12
+imxcamera.CopyFiles             = 12
+imxcsi_Device.CopyFiles         = 12
+imxisi_Device.CopyFiles         = 12
+imxmipi_Device.CopyFiles        = 12
+imxmipi_csis_Device.CopyFiles   = 12
+imxsns_ov5640_Device.CopyFiles  = 12
+imxsns_ov10635_Device.CopyFiles = 12
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%imxcamera.DeviceDesc%      = imxcamera.NT, ACPI\NXP0C21
+%imxcsi.DeviceDesc%         = imxcsi_Device, ACPI\NXP0C11
+%imxisi.DeviceDesc%         = imxisi_Device, ACPI\NXP0C12
+%imxmipi.DeviceDesc%        = imxmipi_Device, ACPI\NXP0C13
+%imxmipi_csis.DeviceDesc%   = imxmipi_csis_Device, ACPI\NXP0C15
+%imxsns_ov5640.DeviceDesc%  = imxsns_ov5640_Device, ACPI\NXP0C14
+%imxsns_ov10635.DeviceDesc% = imxsns_ov10635_Device, ACPI\NXP0C16
+
+;---------------------------------------------------------------
+;                imxcamera
+;---------------------------------------------------------------
+
+[imxcamera.CopyFiles]
+imxcamera.sys
+
+;---------------------------------------------------------------
+;                A R M 64  D D I n s t a l l
+;---------------------------------------------------------------
+
+[imxcamera.NT]
+Include   = ks.inf,KSCAPTUR.inf
+Needs     = KS.Registration,KSCAPTUR.Registration.NT
+CopyFiles = imxcamera.CopyFiles
+
+;---------------------------------------------------------------
+;                I n t e r f a c e s
+;---------------------------------------------------------------
+
+[imxcamera.NT.Interfaces]
+AddInterface = %KSCATEGORY_CAPTURE%,"GLOBAL",CaptureInterface.NT,0
+AddInterface = %KSCATEGORY_VIDEO%,"GLOBAL",CaptureInterface.NT,0
+AddInterface = %KSCATEGORY_VIDEO_CAMERA%,"GLOBAL",CaptureInterface.NT,0
+
+[CaptureInterface.NT]
+AddReg = imxcamera.Reader.AddReg
+
+;---------------------------------------------------------------
+;                A d d R e g
+;---------------------------------------------------------------
+
+[imxcamera.Reader.AddReg]
+HKR,,CLSID,,%Proxy.CLSID%
+HKR,,FriendlyName,,%imxcamera.Reader.FriendlyName%
+
+;---------------------------------------------------------------
+;                S e r v i c e s  
+;---------------------------------------------------------------
+
+[imxcamera.NT.Services]
+AddService = imxcamera,%SPSVCINST_ASSOCSERVICE%, imxcamera.ServiceInstall
+
+
+[imxcamera.ServiceInstall]
+DisplayName   = %imxcamera.DeviceDesc%
+ServiceType   = %SERVICE_KERNEL_DRIVER%
+StartType     = %SERVICE_DEMAND_START%
+ErrorControl  = %SERVICE_ERROR_NORMAL%
+ServiceBinary = %12%\imxcamera.sys
+
+;---------------------------------------------------------------
+;                imxcsi_Device
+;---------------------------------------------------------------
+
+[imxcsi_Device.NT]
+CopyFiles = imxcsi_Device.CopyFiles
+
+[imxcsi_Device.CopyFiles]
+imxcsi.sys
+
+;-------------- Service installation
+[imxcsi_Device.NT.Services]
+AddService = imxcsi,%SPSVCINST_ASSOCSERVICE%, imxcsi_Service_Inst
+
+; -------------- imxcsi driver install sections
+[imxcsi_Service_Inst]
+DisplayName    = %imxcsi.SVCDESC%
+ServiceType    = %SERVICE_KERNEL_DRIVER%
+StartType      = %SERVICE_DEMAND_START%
+ErrorControl   = %SERVICE_ERROR_NORMAL%
+ServiceBinary  = %12%\imxcsi.sys
+
+;
+;--- imxcsi_Device Coinstaller installation ------
+;
+
+[imxcsi_Device.NT.CoInstallers]
+AddReg    = camera_CoInstaller_AddReg
+CopyFiles = camera_CoInstaller_CopyFiles
+
+[imxcsi_Device.NT.Wdf]
+KmdfService = imxcsi, camera_wdfsect
+
+;---------------------------------------------------------------
+;                imxisi_Device
+;---------------------------------------------------------------
+
+[imxisi_Device.NT]
+CopyFiles = imxisi_Device.CopyFiles
+
+[imxisi_Device.CopyFiles]
+imxisi.sys
+
+;-------------- Service installation
+[imxisi_Device.NT.Services]
+AddService = imxisi,%SPSVCINST_ASSOCSERVICE%, imxisi_Service_Inst
+
+; -------------- imxisi driver install sections
+[imxisi_Service_Inst]
+DisplayName    = %imxisi.SVCDESC%
+ServiceType    = %SERVICE_KERNEL_DRIVER%
+StartType      = %SERVICE_DEMAND_START%
+ErrorControl   = %SERVICE_ERROR_NORMAL%
+ServiceBinary  = %12%\imxisi.sys
+
+;
+;--- imxisi_Device Coinstaller installation ------
+;
+
+[imxisi_Device.NT.CoInstallers]
+AddReg    = camera_CoInstaller_AddReg
+CopyFiles = camera_CoInstaller_CopyFiles
+
+[imxisi_Device.NT.Wdf]
+KmdfService =  imxisi, camera_wdfsect
+
+;---------------------------------------------------------------
+;                imxmipi_Device
+;---------------------------------------------------------------
+
+[imxmipi_Device.NT]
+CopyFiles = imxmipi_Device.CopyFiles
+
+[imxmipi_Device.CopyFiles]
+imxmipi.sys
+
+;-------------- Service installation
+[imxmipi_Device.NT.Services]
+AddService = imxmipi,%SPSVCINST_ASSOCSERVICE%, imxmipi_Service_Inst
+
+; -------------- imxmipi driver install sections
+[imxmipi_Service_Inst]
+DisplayName    = %imxmipi.SVCDESC%
+ServiceType    = %SERVICE_KERNEL_DRIVER%
+StartType      = %SERVICE_DEMAND_START%
+ErrorControl   = %SERVICE_ERROR_NORMAL%
+ServiceBinary  = %12%\imxmipi.sys
+
+;
+;--- imxmipi_Device Coinstaller installation ------
+;
+
+[imxmipi_Device.NT.CoInstallers]
+AddReg    = camera_CoInstaller_AddReg
+CopyFiles = camera_CoInstaller_CopyFiles
+
+[imxmipi_Device.NT.Wdf]
+KmdfService =  imxmipi, camera_wdfsect
+
+;---------------------------------------------------------------
+;                imxmipi_csis_Device
+;---------------------------------------------------------------
+
+[imxmipi_csis_Device.NT]
+CopyFiles = imxmipi_csis_Device.CopyFiles
+
+[imxmipi_csis_Device.CopyFiles]
+imxmipi_csis.sys
+
+;-------------- Service installation
+[imxmipi_csis_Device.NT.Services]
+AddService = imxmipi_csis,%SPSVCINST_ASSOCSERVICE%, imxmipi_csis_Service_Inst
+
+; -------------- imxmipi_csis_Device driver install sections
+[imxmipi_csis_Service_Inst]
+DisplayName    = %imxmipi_csis.SVCDESC%
+ServiceType    = %SERVICE_KERNEL_DRIVER%
+StartType      = %SERVICE_DEMAND_START%
+ErrorControl   = %SERVICE_ERROR_NORMAL%
+ServiceBinary  = %12%\imxmipi_csis.sys
+
+;
+;--- imxmipi_csis_Device Coinstaller installation ------
+;
+
+[imxmipi_csis_Device.NT.CoInstallers]
+AddReg    = camera_CoInstaller_AddReg
+CopyFiles = camera_CoInstaller_CopyFiles
+
+[imxmipi_csis_Device.NT.Wdf]
+KmdfService = imxmipi_csis, camera_wdfsect
+
+;---------------------------------------------------------------
+;                imxsns_ov10635_Device
+;---------------------------------------------------------------
+
+[imxsns_ov10635_Device.NT]
+CopyFiles = imxsns_ov10635_Device.CopyFiles
+
+[imxsns_ov10635_Device.CopyFiles]
+imxsns_ov10635.sys
+
+;-------------- Service installation
+[imxsns_ov10635_Device.NT.Services]
+AddService = imxsns_ov10635,%SPSVCINST_ASSOCSERVICE%, imxsns_ov10635_Service_Inst
+
+; -------------- imxsns_ov10635_Device driver install sections
+[imxsns_ov10635_Service_Inst]
+DisplayName   = %imxsns_ov10635.SVCDESC%
+ServiceType   = %SERVICE_KERNEL_DRIVER%
+StartType     = %SERVICE_DEMAND_START%
+ErrorControl  = %SERVICE_ERROR_NORMAL%
+ServiceBinary = %12%\imxsns_ov10635.sys
+
+;
+;--- imxsns_ov10635_Device Coinstaller installation ------
+;
+
+[imxsns_ov10635_Device.NT.CoInstallers]
+AddReg    = camera_CoInstaller_AddReg
+CopyFiles = camera_CoInstaller_CopyFiles
+
+[imxsns_ov10635_Device.NT.Wdf]
+KmdfService =  imxsns_ov10635, camera_wdfsect
+
+;---------------------------------------------------------------
+;                imxsns_ov5640_Device
+;---------------------------------------------------------------
+
+[imxsns_ov5640_Device.NT]
+CopyFiles=imxsns_ov5640_Device.CopyFiles
+
+[imxsns_ov5640_Device.CopyFiles]
+imxsns_ov5640.sys
+
+;-------------- Service installation
+[imxsns_ov5640_Device.NT.Services]
+AddService = imxsns_ov5640,%SPSVCINST_ASSOCSERVICE%, imxsns_ov5640_Service_Inst
+
+; -------------- imxsns_ov5640_Device driver install sections
+[imxsns_ov5640_Service_Inst]
+DisplayName   = %imxsns_ov5640.SVCDESC%
+ServiceType   = %SERVICE_KERNEL_DRIVER%
+StartType     = %SERVICE_DEMAND_START%
+ErrorControl  = %SERVICE_ERROR_NORMAL%
+ServiceBinary = %12%\imxsns_ov5640.sys
+
+;
+;--- imxsns_ov5640_Device Coinstaller installation ------
+;
+
+[imxsns_ov5640_Device.NT.CoInstallers]
+AddReg=camera_CoInstaller_AddReg
+CopyFiles=camera_CoInstaller_CopyFiles
+
+[imxsns_ov5640_Device.NT.Wdf]
+KmdfService =  imxsns_ov5640, camera_wdfsect
+
+
+;---------------------------------------------------------------
+;                Coinstaller installation
+;---------------------------------------------------------------
+
+
+[camera_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[camera_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[camera_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+;---------------------------------------------------------------
+;                S t r i n g s
+;---------------------------------------------------------------
+
+[Strings]
+ProviderName                    = "NXP"
+ManufacturerName                = "NXP Semiconductors"
+DiskName                        = "i.MX Camera driver Installation Disk"
+
+imxcamera.DeviceDesc            = "i.MX Camera Device"
+imxcamera.SVCDESC               = "i.MX Camera Service"
+imxcamera.Reader.FriendlyName   = "i.MX Camera driver Source"
+
+imxcsi.DeviceDesc               = "i.MX CSI bridge Device"
+imxcsi.SVCDESC                  = "i.MX CSI bridge Service"
+
+imxisi.DeviceDesc               = "i.MX Image Sensing Interface Device"
+imxisi.SVCDESC                  = "i.MX Image Sensing Interface Service"
+
+imxmipi.DeviceDesc              = "i.MX MIPI CSI Device"
+imxmipi.SVCDESC                 = "i.MX MIPI CSI Service"
+
+imxmipi_csis.DeviceDesc         = "i.MX MIPI CSI csis Device"
+imxmipi_csis.SVCDESC            = "i.MX MIPI CSI csis Service"
+
+imxsns_ov10635.DeviceDesc       = "i.MX OV10635 Sensor Device"
+imxsns_ov10635.SVCDESC          = "i.MX OV10635 Sensor Service"
+
+imxsns_ov5640.DeviceDesc        = "i.MX OV5640 Sensor Device"
+imxsns_ov5640.SVCDESC           = "i.MX OV5640 Sensor Service"
+
+; non-localizable
+Proxy.CLSID             = "{17CCA71B-ECD7-11D0-B908-00A0C9223196}"
+KSCATEGORY_CAPTURE      = "{65E8773D-8F56-11D0-A3B9-00A0C9223196}"
+KSCATEGORY_VIDEO        = "{6994AD05-93EF-11D0-A3CC-00A0C9223196}"
+KSCATEGORY_VIDEO_CAMERA = "{E5323777-F976-4f5b-9B55-B94699C46E44}"
+
+SPSVCINST_ASSOCSERVICE = 0x00000002
+SERVICE_KERNEL_DRIVER  = 1
+
+SERVICE_BOOT_START     = 0
+SERVICE_SYSTEM_START   = 1
+SERVICE_DEMAND_START   = 3
+
+SERVICE_ERROR_IGNORE   = 0
+SERVICE_ERROR_NORMAL   = 1
+SERVICE_ERROR_CRITICAL = 3
+
+REG_DWORD              = 0x00010001

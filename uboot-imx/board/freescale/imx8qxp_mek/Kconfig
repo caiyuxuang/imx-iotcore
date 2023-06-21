@@ -1,0 +1,20 @@
+if TARGET_IMX8QXP_MEK || TARGET_IMX8DX_MEK
+
+config SYS_BOARD
+	default "imx8qxp_mek"
+
+config SYS_VENDOR
+	default "freescale"
+
+config SYS_CONFIG_NAME
+	default "imx8qxp_mek"
+	
+config LOADADDR
+	hex "Imge load address"
+	default 0x80280000
+	help
+	  Defines where a boot image will be leaded.
+
+source "board/freescale/common/Kconfig"
+
+endif

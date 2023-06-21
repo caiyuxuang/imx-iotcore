@@ -1,0 +1,70 @@
+; Copyright (c) Microsoft Corporation. All rights reserved.
+; Licensed under the MIT License.
+
+[Version]
+Signature="$Windows NT$"
+Class=System
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider=%ProviderName%
+PnpLockdown = 1
+DriverVer= ; 
+CatalogFile=Wm8960Codec.cat ; VS requirement to have catalog file entry
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%WM8960.DeviceDesc%=MyDevice_Install, ACPI\WML8960
+
+[SourceDisksFiles]
+Wm8960Codec.dll=1
+
+[SourceDisksNames]
+1 = %DiskName%
+
+; =================== UMDF Device ==================================
+
+[MyDevice_Install.NT]
+CopyFiles=UMDriverCopy
+
+[MyDevice_Install.NT.hw]
+
+[MyDevice_Install.NT.Services]
+AddService=WUDFRd,0x000001fa,WUDFRD_ServiceInstall
+
+[MyDevice_Install.NT.CoInstallers]
+AddReg=CoInstallers_AddReg
+
+[MyDevice_Install.NT.Wdf]
+UmdfService=Wm8960Codec,Wm8960Codec_Install
+UmdfServiceOrder=Wm8960Codec
+
+[Wm8960Codec_Install]
+UmdfLibraryVersion=$UMDFVERSION$ 
+ServiceBinary=%13%\Wm8960Codec.dll
+
+[WUDFRD_ServiceInstall]
+DisplayName = %WudfRdDisplayName%
+ServiceType = 1
+StartType = 3
+ErrorControl = 1
+ServiceBinary = %12%\WUDFRd.sys
+
+[CoInstallers_AddReg]
+HKR,,CoInstallers32,0x00010000,"WUDFCoinstaller.dll"
+
+[DestinationDirs]
+UMDriverCopy=13 ; copy to driver store
+
+[UMDriverCopy]
+Wm8960Codec.dll
+
+
+; =================== Generic ==================================
+[Strings]
+ProviderName                 = "NXP"
+ManufacturerName             = "NXP Semiconductors"
+WM8960.DeviceDesc            = "Wm8960 Audio Codec Device"
+WM8960.SvcDesc               = "Wm8960 Audio Codec Device Service"
+DiskName                     = "Wm8960 Audio Codec Installation Disk"
+WudfRdDisplayName            = "Windows Driver Foundation - User-mode Driver Framework Reflector"

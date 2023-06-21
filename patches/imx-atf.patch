@@ -1,0 +1,65 @@
+diff --git a/plat/imx/imx8m/imx8mm/imx8mm_bl31_setup.c b/plat/imx/imx8m/imx8mm/imx8mm_bl31_setup.c
+index f63b9fcad..a89c7f941 100644
+--- a/plat/imx/imx8m/imx8mm/imx8mm_bl31_setup.c
++++ b/plat/imx/imx8m/imx8mm/imx8mm_bl31_setup.c
+@@ -58,7 +58,7 @@ static const struct imx_rdc_cfg rdc[] = {
+ 	RDC_MDAn(RDC_MDA_M4, DID1),
+ 
+ 	/* peripherals domain permission */
+-	RDC_PDAPn(RDC_PDAP_UART4, D1R | D1W),
++	RDC_PDAPn(RDC_PDAP_UART4, D0R | D0W),
+ 	RDC_PDAPn(RDC_PDAP_UART2, D0R | D0W),
+ 	RDC_PDAPn(RDC_PDAP_UART1, D0R | D0W),
+ 
+diff --git a/plat/imx/imx8m/imx8mn/imx8mn_bl31_setup.c b/plat/imx/imx8m/imx8mn/imx8mn_bl31_setup.c
+index 71f3758c3..9c50e2ef2 100644
+--- a/plat/imx/imx8m/imx8mn/imx8mn_bl31_setup.c
++++ b/plat/imx/imx8m/imx8mn/imx8mn_bl31_setup.c
+@@ -50,7 +50,7 @@ static const struct imx_rdc_cfg rdc[] = {
+ 	RDC_MDAn(RDC_MDA_M7, DID1),
+ 
+ 	/* peripherals domain permission */
+-	RDC_PDAPn(RDC_PDAP_UART4, D1R | D1W),
++	RDC_PDAPn(RDC_PDAP_UART4, D0R | D0W),
+ 	RDC_PDAPn(RDC_PDAP_UART2, D0R | D0W),
+ 	RDC_PDAPn(RDC_PDAP_RDC, D0R | D0W | D1R),
+ 
+diff --git a/plat/imx/imx8m/imx8mn/platform.mk b/plat/imx/imx8m/imx8mn/platform.mk
+index 22846f289..7525ae8d0 100644
+--- a/plat/imx/imx8m/imx8mn/platform.mk
++++ b/plat/imx/imx8m/imx8mn/platform.mk
+@@ -56,7 +56,7 @@ ERRATA_A53_835769	:=	1
+ ERRATA_A53_843419	:=	1
+ ERRATA_A53_855873	:=	1
+ 
+-BL32_BASE		?=	0x56000000
++BL32_BASE		?=	0xbe000000
+ $(eval $(call add_define,BL32_BASE))
+ 
+ BL32_SIZE		?=	0x2000000
+diff --git a/plat/imx/imx8m/imx8mp/include/platform_def.h b/plat/imx/imx8m/imx8mp/include/platform_def.h
+index 39f0bee4f..a68633cfd 100644
+--- a/plat/imx/imx8m/imx8mp/include/platform_def.h
++++ b/plat/imx/imx8m/imx8mp/include/platform_def.h
+@@ -57,7 +57,7 @@
+ #define IMX_BOOT_UART_CLK_IN_HZ		24000000 /* Select 24MHz oscillator */
+ #define PLAT_CRASH_UART_BASE		IMX_BOOT_UART_BASE
+ #define PLAT_CRASH_UART_CLK_IN_HZ	24000000
+-#define IMX_CONSOLE_BAUDRATE		115200
++#define IMX_CONSOLE_BAUDRATE		921600
+ 
+ #define IMX_AIPSTZ1			U(0x301f0000)
+ #define IMX_AIPSTZ2			U(0x305f0000)
+diff --git a/plat/imx/imx8m/imx8mp/platform.mk b/plat/imx/imx8m/imx8mp/platform.mk
+index d7999d846..f393b7605 100644
+--- a/plat/imx/imx8m/imx8mp/platform.mk
++++ b/plat/imx/imx8m/imx8mp/platform.mk
+@@ -55,7 +55,7 @@ ERRATA_A53_835769	:=	1
+ ERRATA_A53_843419	:=	1
+ ERRATA_A53_855873	:=	1
+ 
+-BL32_BASE		?=	0x56000000
++BL32_BASE		?=	0xFE000000
+ $(eval $(call add_define,BL32_BASE))
+ 
+ BL32_SIZE		?=	0x2000000

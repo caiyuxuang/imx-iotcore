@@ -1,0 +1,71 @@
+; Copyright (c) Microsoft Corporation. All rights reserved.
+; Copyright 2022 NXP
+; Licensed under the MIT License.
+;
+;Module Name:
+;    imxlpi2c.inf
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318}
+Provider=%ProviderName%
+PnpLockdown = 1
+DriverVer= ; stampinf will fill in driver version
+CatalogFile=imxlpi2c.cat ; VS requirement to have catalog file entry
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+; ================= Class section =====================
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+imxlpi2c.sys  = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%imxlpi2c.DeviceDesc%=imx_lpi2c_Device, ACPI\NXP0119
+
+[imx_lpi2c_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+imxlpi2c.sys
+
+;-------------- Service installation
+[imx_lpi2c_Device.NT.Services]
+AddService = imxlpi2c,%SPSVCINST_ASSOCSERVICE%, imxlpi2c_Service_Inst
+
+; -------------- imxlpi2c driver install sections
+[imxlpi2c_Service_Inst]
+DisplayName    = %imxlpi2c.SVCDESC%
+ServiceType    = 1 ; SERVICE_KERNEL_DRIVER
+StartType      = 3 ; SERVICE_DEMAND_START
+ErrorControl   = 1 ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %13%\imxlpi2c.sys
+Dependencies   = SpbCx
+
+[imx_lpi2c_Device.NT.Wdf]
+KmdfService =  imxlpi2c, imxlpi2c_wdfsect
+
+[imxlpi2c_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+ProviderName                 = "NXP"
+ManufacturerName             = "NXP Semiconductors"
+imxlpi2c.DeviceDesc          = "i.MX LPI2C Controller"
+imxlpi2c.0001.DeviceDesc     = "i.MX LPI2C Controller"
+imxlpi2c.SVCDESC             = "i.MX LPI2C Controller Service"
+SPSVCINST_ASSOCSERVICE= 0x00000002
+
+DiskName = "i.MX LPI2C Controller Installation Disk"

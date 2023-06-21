@@ -1,0 +1,25 @@
+diff --git a/MdeModulePkg/Bus/Pci/EhciDxe/EhciReg.c b/MdeModulePkg/Bus/Pci/EhciDxe/EhciReg.c
+index ca63736f20..08b5a4f10b 100644
+--- a/MdeModulePkg/Bus/Pci/EhciDxe/EhciReg.c
++++ b/MdeModulePkg/Bus/Pci/EhciDxe/EhciReg.c
+@@ -7,7 +7,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
+ 
+ **/
+ 
+-
+ #include "Ehci.h"
+ 
+ 
+@@ -596,6 +595,12 @@ EhcInitHC (
+   UINT32                  Index;
+   UINT32                  RegVal;
+ 
++#define EHC_USBMODE_OFFSET      0x68 // USB mode register offset
++#define USBMODE_HOST            (3U) // Host mode
++
++  EhcSetOpRegBit (Ehc, EHC_USBMODE_OFFSET, USBMODE_HOST);
++
++
+   // This ASSERT crashes the BeagleBoard. There is some issue in the USB stack.
+   // This ASSERT needs to be removed so the BeagleBoard will boot. When we fix
+   // the USB stack we can put this ASSERT back in

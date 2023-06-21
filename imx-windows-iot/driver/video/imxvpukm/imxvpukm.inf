@@ -1,0 +1,93 @@
+; Copyright (c) Microsoft Corporation. All rights reserved.
+; Copyright 2022 NXP
+; Licensed under the MIT License.
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318}
+Provider=%ProviderName%
+PnpLockdown = 1
+CatalogFile=imxvpukm.cat
+DriverVer= ; stampinf will fill in driver version
+
+[DestinationDirs]
+DefaultDestDir = 13
+InstallFilesSection = 11
+
+; ================= Class section =====================
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+imxvpukm.sys  = 1,,
+imxvpumft.dll = 1
+imxomxg1.dll = 1
+imxomxg2.dll = 1
+imx-vpu-dwl.dll = 1
+vcruntime140.dll = 1
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%imxvpukm.DeviceDesc%=imx_vpu_km_Device, ACPI\NXP0109
+
+[imx_vpu_km_Device.NT]
+CopyFiles=Drivers_Dir,InstallFilesSection
+
+[InstallFilesSection]
+imxvpumft.dll,,,0x4000
+imxomxg1.dll,,,0x4000
+imxomxg2.dll,,,0x4000
+imx-vpu-dwl.dll,,,0x4000
+vcruntime140.dll,,,0x4000
+
+[Drivers_Dir]
+imxvpukm.sys
+
+;-------------- Service installation
+[imx_vpu_km_Device.NT.Services]
+AddService = imxvpukm,%SPSVCINST_ASSOCSERVICE%, imx_vpu_km_Service_Inst
+
+; -------------- imxvpukm driver install sections
+[imx_vpu_km_Service_Inst]
+DisplayName    = %imxvpukm.SvcDesc%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %13%\imxvpukm.sys
+
+; ------------- Interface installation
+[imx_vpu_km_Device.NT.Interfaces]
+AddInterface={ada9253b-628c-40ce-b2c1-19f489a0f3da},,imx_vpu_km_interface
+
+[imx_vpu_km_interface]
+AddProperty=imx_vpu_km_interface_AddProperty
+
+; Mark us as a privileged interface
+[imx_vpu_km_interface_AddProperty]
+{026e516e-b814-414b-83cd-856d6fef4822},6,0x11,,1
+
+[Strings]
+ProviderName                 = "NXP"
+ManufacturerName             = "NXP Semiconductors"
+imxvpukm.DeviceDesc          = "i.MX Hantro VPU Device"
+imxvpukm.0001.DeviceDesc     = "i.MX Full Feature Hantro VPU Device"
+imxvpukm.0002.DeviceDesc     = "i.MX Limited Feature Hantro VPU Device"
+imxvpukm.SvcDesc             = "i.MX Hantro VPU Device Service"
+
+
+SPSVCINST_ASSOCSERVICE= 0x00000002
+DiskName = "i.MX Hantro VPU Device Installation Disk"
+REG_EXPAND_SZ = 0x00020000
+REG_DWORD = 0x00010001
+REG_SZ = 0x00000000
+REG_BINARY = 0x00000001
+FLG_ADDREG_KEYONLY = 0x00000010
+MFT_ENUM_FLAG_FIELDOFUSE = 0x00000008  

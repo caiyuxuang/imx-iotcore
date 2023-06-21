@@ -1,0 +1,64 @@
+[Version]
+; Based on https://docs.microsoft.com/en-us/windows-hardware/drivers/bringup/authoring-an-update-driver-package
+Signature   = "$WINDOWS NT$"
+Provider    = %Provider%
+Class       = Firmware
+ClassGuid   = {f2e7dd72-6468-4e36-b6f1-6488f42c1b52}
+DriverVer   = 06/09/2022,1.0.0.0
+CatalogFile = catalog.cat
+PnpLockdown = 1
+
+[Manufacturer]
+%MfgName% = Firmware,NTARM64,NTAMD64
+
+[Firmware.NTARM64]
+%FirmwareDesc% = Firmware_Install, UEFI\RES_{62af20a3-7016-424a-9bf8-9ccc86584090}
+
+
+[Firmware.NTAMD64]
+%FirmwareDesc% = Firmware_Install, UEFI\RES_{62af20a3-7016-424a-9bf8-9ccc86584090}
+
+
+[Firmware_Install.NTARM64]
+CopyFiles = Firmware_CopyFiles
+
+[Firmware_CopyFiles]
+firmware.bin
+
+[Firmware_Install.NTARM64.Hw]
+AddReg = Firmware_AddReg
+
+[Firmware_Install.NTAMD64]
+CopyFiles = Firmware_CopyFiles
+
+[Firmware_Install.NTAMD64.Hw]
+AddReg = Firmware_AddReg
+
+[Firmware_AddReg]
+HKR,,FirmwareId,,{62AF20A3-7016-424A-9BF8-9CCC86584090}
+HKR,,FirmwareVersion,%REG_DWORD%,0x00000002
+HKR,,FirmwareFilename,,%13%\firmware.bin
+; Prior to Windows 10 1803, the above should instead be:
+; HKR,,FirmwareFilename,,{62AF20A3-7016-424A-9BF8-9CCC86584090}\firmware.bin
+
+[SourceDisksNames]
+1 = %DiskName%
+
+[SourceDisksFiles]
+firmware.bin = 1
+
+[DestinationDirs]
+DefaultDestDir = 13
+; Prior to Windows 10 1803, the above should be:
+; DefaultDestDir = %DIRID_WINDOWS%,Firmware\{62AF20A3-7016-424A-9BF8-9CCC86584090}
+
+[Strings]
+; localizable
+Provider     = "NXP"
+MfgName      = "NXP"
+FirmwareDesc = "iMX8 System Firmware"
+DiskName     = "Firmware Update"
+
+; non-localizable
+DIRID_WINDOWS = 10
+REG_DWORD     = 0x00010001

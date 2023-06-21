@@ -1,0 +1,91 @@
+; Copyright (c) Microsoft Corporation. All rights reserved.
+; Copyright 2022 NXP
+; Licensed under the MIT License.
+
+[Version]
+Signature	= "$WINDOWS NT$"
+Class		= Camera
+ClassGuid	= {ca3e7ab9-b4c3-4ae6-8251-579ef933890f}
+Provider	= %ProviderName%
+PnpLockdown = 1
+CatalogFile	= imxsns_ov10635.cat ; VS requirement to have catalog file entry
+
+[DestinationDirs]
+DefaultDestDir = 12
+imxsns_ov10635_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll = 1 ; make sure the number matches with SourceDisksNames
+
+[SourceDisksFiles]
+imxsns_ov10635.sys = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName% = Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%imxsns_ov10635.DeviceDesc% = imxsns_ov10635_Device, ACPI\NXP0C16
+
+[imxsns_ov10635_Device.NT]
+CopyFiles = Drivers_Dir
+
+[Drivers_Dir]
+imxsns_ov10635.sys
+
+;-------------- Service installation
+[imxsns_ov10635_Device.NT.Services]
+AddService = imxsns_ov10635,%SPSVCINST_ASSOCSERVICE%, imxsns_ov10635_Service_Inst
+
+; -------------- imxsns_ov10635 driver install sections
+[imxsns_ov10635_Service_Inst]
+DisplayName   = %imxsns_ov10635.SVCDESC%
+ServiceType   = %SERVICE_KERNEL_DRIVER%
+StartType     = %SERVICE_DEMAND_START%
+ErrorControl  = %SERVICE_ERROR_NORMAL%
+ServiceBinary = %12%\imxsns_ov10635.sys
+
+;
+;--- imxsns_ov10635_Device Coinstaller installation ------
+;
+
+[imxsns_ov10635_Device.NT.CoInstallers]
+AddReg	  = imxsns_ov10635_Device_CoInstaller_AddReg
+CopyFiles = imxsns_ov10635_Device_CoInstaller_CopyFiles
+
+[imxsns_ov10635_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[imxsns_ov10635_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[imxsns_ov10635_Device.NT.Wdf]
+KmdfService = imxsns_ov10635, imxsns_ov10635_wdfsect
+
+[imxsns_ov10635_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+ProviderName               = "NXP"
+ManufacturerName           = "NXP Semiconductors"
+DiskName				   = "i.MX OV10635 Sensor Installation Disk"
+imxsns_ov10635.DeviceDesc   = "i.MX OV10635 Sensor Device"
+imxsns_ov10635.SVCDESC	   = "i.MX OV10635 Sensor Service"
+
+; non-localizable strings
+SPSVCINST_ASSOCSERVICE = 0x00000002
+SERVICE_KERNEL_DRIVER  = 1
+
+SERVICE_BOOT_START     = 0
+SERVICE_SYSTEM_START   = 1
+SERVICE_DEMAND_START   = 3
+
+SERVICE_ERROR_IGNORE   = 0
+SERVICE_ERROR_NORMAL   = 1
+SERVICE_ERROR_CRITICAL = 3

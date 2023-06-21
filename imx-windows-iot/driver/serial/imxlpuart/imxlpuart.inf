@@ -1,0 +1,86 @@
+; Copyright (c) Microsoft Corporation. All rights reserved.
+; Copyright 2022 NXP
+; Licensed under the MIT License.
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318}
+Provider=%ProviderName%
+DriverVer=
+PnpLockdown = 1
+CatalogFile=imxlpuart.cat ; VS requirement to have catalog file entry
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+[SourceDisksNames]
+1 = %DiskId1%,,,""
+
+[SourceDisksFiles]
+imxlpuart.sys  = 1,,
+
+[ControlFlags]
+ExcludeFromSelect=*
+
+;*****************************************
+; imxlpuart Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=MSFT,NT$ARCH$
+
+[MSFT.NT$ARCH$]
+%imxlpuart.DeviceDesc%=imxlpuart_Device, ACPI\NXP0116    ; LPUART
+
+[imxlpuart_Device.NT]
+CopyFiles=Drivers_Dir
+
+[imxlpuart_Device.NT.HW]
+AddReg = imxlpuart_Device_Reg
+
+[imxlpuart_Device.NT.Services]
+AddService = imxlpuart,%SPSVCINST_ASSOCSERVICE%, imxlpuart_Service_Inst
+
+[Drivers_Dir]
+imxlpuart.sys
+
+[imxlpuart_Device_Reg]
+HKR,,RxIntermediateBufferSize,0x00010001,4096
+HKR,,RxDmaIntermediateBufferSize,0x00010001,8192
+HKR,,TxIntermediateBufferSize,0x00010001,1024
+HKR,,RxFifoThresholdUs,0x00010001,50
+HKR,,TxFifoThresholdUs,0x00010001,10
+HKR,,TxDpcThresholdUs,0x00010001,50
+HKR,,RtsTriggerLevel,0x00010001,30
+HKR,,RxDmaMinTransactionLength,0x00010001,128
+HKR,,TxDmaMinTransactionLength,0x00010001,128
+HKR,,ModuleClockFrequency,0x00010001,80000000  ; 80 MHz (LPUART_CLK_ROOT)
+
+[imxlpuart_Device.NT.Wdf]
+KmdfService = imxlpuart, imxlpuart_wdfsect
+
+[imxlpuart_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+; -------------- imxlpuart driver install sections
+[imxlpuart_Service_Inst]
+DisplayName    = %imxlpuart.SvcDesc%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %13%\imxlpuart.sys
+LoadOrderGroup = Extended Base
+Dependencies   = SerCx2
+
+[Strings]
+ProviderName                 = "NXP"
+ManufacturerName             = "NXP Semiconductors"
+imxlpuart.DeviceDesc         = "i.MX LPUART Controller"
+imxlpuart.SvcDesc            = "i.MX LPUART Service"
+
+; localizable strings
+DiskId1 = "i.MX LPUART Controller Installation Disk #1"
+
+; non-localizable strings
+SPSVCINST_ASSOCSERVICE = 0x00000002
